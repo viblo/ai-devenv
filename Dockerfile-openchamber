@@ -1,0 +1,124 @@
+FROM ubuntu:25.10
+
+ARG USERNAME=ai
+ARG USER_UID=1000
+ARG USER_GID=1000
+
+# Rename the existing ubuntu user to ai (if it exists)
+RUN if id ubuntu &>/dev/null; then \
+        usermod -l ai ubuntu && \
+        groupmod -n ai ubuntu && \
+        usermod -d /home/ai -m ai; \
+    else \
+        useradd -m -s /bin/bash ai; \
+    fi
+
+# For OpenCode with Azure Cognitive Service
+ENV AZURE_COGNITIVE_SERVICES_RESOURCE_NAME=aif-ai-sec
+
+# General tools
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    ca-certificates \
+    curl \
+    fish \
+    git \
+    gnupg \
+    jq \
+    less \
+    maven \
+    nano \
+    openjdk-21-jdk \
+    ripgrep \
+    socat \
+    tar \
+    unzip \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+# ----- .NET SDK 8 (install script) -----
+# RUN curl -fsSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh \
+#     && chmod +x /tmp/dotnet-install.sh \
+#     && /tmp/dotnet-install.sh --channel 8.0 --install-dir /usr/share/dotnet --no-path \
+#     && rm /tmp/dotnet-install.sh
+
+# Install gh cli
+RUN mkdir -p -m 755 /etc/apt/keyrings \
+	&& out=$(mktemp) && wget -nv -O$out https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+	&& cat $out | tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null \
+	&& chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
+	&& mkdir -p -m 755 /etc/apt/sources.list.d \
+	&& echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+	&& apt-get update \
+	&& apt-get install -y gh \
+	&& rm -rf /var/lib/apt/lists/*
+
+# Install GitLab CLI 
+COPY --from=gitlab/glab:latest /usr/bin/glab /usr/local/bin/glab
+
+# # Install Node.js directly from NodeSource
+# RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
+#     && apt-get install -y nodejs
+
+
+# Switch to non-root user    
+USER ${USERNAME}
+ENV HOME=/home/${USERNAME}
+WORKDIR /home/${USERNAME}
+
+# Install Python
+RUN uv python install --default
+ENV PATH="${HOME}/.local/bin:${PATH}"
+
+ENV SHELL=/bin/bash
+ENV NVM_DIR=/home/${USERNAME}/.nvm
+ENV NODE_VERSION=24
+
+
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bash && \
+    export NVM_DIR="$HOME/.nvm" && \
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && \
+    nvm install 24 && \
+    npm install -g npm && \
+    npm install -g opencode-ai && \
+    npm install -g @openchamber/web && \ 
+    node --version && \
+    npm --version && \
+    opencode --version && \
+    openchamber --version 
+    
+# Find the actual Node version and add it to PATH
+RUN export NVM_DIR="$HOME/.nvm" && \
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && \
+    NODE_VERSION_FULL=$(node --version | cut -c2-) && \
+    echo "export PATH=\"${NVM_DIR}/versions/node/v${NODE_VERSION_FULL}/bin:\$PATH\"" >> $HOME/.bashrc
+
+# # # Verify installed tools
+RUN echo "Installed Versions" \
+    export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" \
+    && uv python list \
+    && uv --version \
+    # && dotnet --version \
+    && java --version \
+    && gh --version \
+    && glab --version \
+    && node --version \
+    && npm --version \
+    && openchamber --version \
+    && opencode --version
+
+# openchamber --port 8126 --ui-password 123
+# nohup openchamber --port 8126 --ui-password 123 >> openchamber.log 2>&1 &
+# codenomad --port 8127 --username vb --password 123
+# nohup codenomad --host 0.0.0.0 --port 8127 --username vb --password 123 >> codenomad.log 2>&1 &
+# CLI_API_TOKEN=a HAPI_API_URL=http://localhost:8128 HAPI_LISTEN_HOST=0.0.0.0 HAPI_LISTEN_PORT=8128 HAPI_PUBLIC_URL=http://localhost:8126 hapi hub 
+# openchamber, codenomad, hapi codex, hapi opencode
+
+
+EXPOSE 8126
+#ENTRYPOINT ["export NVM_DIR=\"$HOME/.nvm\" && [ -s \"$NVM_DIR/nvm.sh\" ] && \. \"$NVM_DIR/nvm.sh\" && openchamber --port 8126"]
+#ENTRYPOINT ["bash", "-c", "source ~/.bashrc && openchamber --port 8126"]
+ENTRYPOINT ["/bin/bash", "-c", "cd $HOME/ai-workdir && source $HOME/.nvm/nvm.sh && exec openchamber --port 8126"]
