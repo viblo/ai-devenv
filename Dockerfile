@@ -123,4 +123,4 @@ EXPOSE 8126
 #ENTRYPOINT ["export NVM_DIR=\"$HOME/.nvm\" && [ -s \"$NVM_DIR/nvm.sh\" ] && \. \"$NVM_DIR/nvm.sh\" && openchamber --port 8126"]
 #ENTRYPOINT ["bash", "-c", "source ~/.bashrc && openchamber --port 8126"]
 #ENTRYPOINT ["/bin/bash", "-c", "cd $HOME/ai-workdir && source $HOME/.nvm/nvm.sh && exec openchamber --port 8126"]
-ENTRYPOINT ["/bin/bash", "-c", "cd $HOME/ai-workdir && source $HOME/.nvm/nvm.sh && exec codenomad --host 0.0.0.0 --port 8126"]
+ENTRYPOINT ["/bin/bash", "-c", "cd $HOME/ai-workdir && source $HOME/.nvm/nvm.sh && exec codenomad"]
