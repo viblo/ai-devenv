@@ -117,6 +117,7 @@ RUN echo "Installed Versions" \
 # CLI_API_TOKEN=a HAPI_API_URL=http://localhost:8128 HAPI_LISTEN_HOST=0.0.0.0 HAPI_LISTEN_PORT=8128 HAPI_PUBLIC_URL=http://localhost:8126 hapi hub 
 # openchamber, codenomad, hapi codex, hapi opencode
 
+RUN mkdir $HOME/ai-workdir
 
 EXPOSE 8126
 #ENTRYPOINT ["export NVM_DIR=\"$HOME/.nvm\" && [ -s \"$NVM_DIR/nvm.sh\" ] && \. \"$NVM_DIR/nvm.sh\" && openchamber --port 8126"]
