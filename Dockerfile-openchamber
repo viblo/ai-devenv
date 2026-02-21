@@ -3,6 +3,8 @@ FROM ubuntu:25.10
 ARG USERNAME=ai
 ARG USER_UID=1000
 ARG USER_GID=1000
+ARG GIT_USER
+ARG GIT_EMAIL
 
 # Rename the existing ubuntu user to ai (if it exists)
 RUN if id ubuntu &>/dev/null; then \
@@ -74,12 +76,16 @@ RUN uv python install --default
 ENV PATH="${HOME}/.local/bin:${PATH}"
 
 # Pyhton tools
-# RUN uv tool install ruff@latest ty@latest
+RUN uv tool install ruff@latest && \
+    uv tool install ty@latest
 
 ENV SHELL=/bin/bash
 ENV NVM_DIR=/home/${USERNAME}/.nvm
 ENV NODE_VERSION=24
 
+# Set git user & email
+RUN git config --global user.name "$GIT_USER" && \
+    git config --global user.email "$GIT_NAME"
 
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bash && \
     export NVM_DIR="$HOME/.nvm" && \
