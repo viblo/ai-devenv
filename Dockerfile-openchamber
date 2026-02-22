@@ -28,14 +28,30 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gnupg \
     jq \
     less \
-    maven \
     nano \
-    openjdk-21-jdk \
     ripgrep \
     socat \
     tar \
     unzip \
     wget \
+    # Java
+    maven \
+    openjdk-21-jdk \
+    # for SDL (pygame)
+    libsdl2-dev \
+    libsdl2-image-dev \
+    libsdl2-mixer-dev \ 
+    libsdl2-ttf-dev \
+    # OpenGL software
+    libglvnd0 \
+    libgl1 \
+    libegl1 \ 
+    libgles2 \ 
+    libglvnd-dev \
+    mesa-utils \
+    libosmesa6 \
+    # Headless screen
+    xvfb \
     && rm -rf /var/lib/apt/lists/*
 
 # Install uv
