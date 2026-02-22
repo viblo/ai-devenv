@@ -50,6 +50,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libglvnd-dev \
     mesa-utils \
     libosmesa6 \
+    libgl1-mesa-dri
     # Headless screen
     xvfb \
     && rm -rf /var/lib/apt/lists/*
