@@ -134,7 +134,7 @@ RUN git clone https://github.com/tiann/hapi.git hapi-src
 RUN cd hapi-src && \
     bun install && \
     bun build:single-exe && \
-    mv hapi-src/cli/dist-exe/bun-linux-x64/hapi ..\.
+    mv cli/dist-exe/bun-linux-x64/hapi ..\.
 
 # Verify installed tools
 RUN echo "Installed Versions" \
@@ -169,4 +169,4 @@ ENV HAPI_API_URL=http://localhost:8128
 ENV HAPI_LISTEN_HOST=0.0.0.0 
 ENV HAPI_LISTEN_PORT=8128 
 ENV HAPI_PUBLIC_URL=http://localhost:8126 
-ENTRYPOINT ["/bin/bash", "-c", "cd $HOME/ai-workdir && source $HOME/.nvm/nvm.sh && tail -f /dev/null"]
+ENTRYPOINT ["/bin/bash", "-c", "cd $HOME/ai-workdir && tail -f /dev/null"]
