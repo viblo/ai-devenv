@@ -25,6 +25,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     fish \
     git \
+    gyp \
     gnupg \
     jq \
     less \
@@ -34,9 +35,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     tar \
     unzip \
     wget \
+    file \
+    strace \
     # Java
     maven \
     openjdk-21-jdk \
+    # Node / JS
+    nodejs \
+    npm \
     # for SDL (pygame)
     libsdl2-dev \
     libsdl2-image-dev \
@@ -97,40 +103,34 @@ RUN uv tool install ruff@latest && \
     uv tool install ty@latest
 
 ENV SHELL=/bin/bash
-ENV NVM_DIR=/home/${USERNAME}/.nvm
-ENV NODE_VERSION=24
+#ENV NVM_DIR=/home/${USERNAME}/.nvm
+#ENV NODE_VERSION=24
 
 # Set git user & email
 RUN git config --global user.name "$GIT_USER" && \
     git config --global user.email "$GIT_NAME"
 
-RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bash && \
-    export NVM_DIR="$HOME/.nvm" && \
-    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && \
-    nvm install 24 && \
-    npm install -g npm && \
-    npm install -g opencode-ai && \
-    npm install -g @openchamber/web && \ 
-    node --version && \
-    npm --version && \
+RUN curl https://bun.sh/install | bash && \
+    export BUN_INSTALL="$HOME/.bun" && \
+    export PATH="$BUN_INSTALL/bin:$PATH" && \
+    export npm_config_python="/usr/bin/python3" && \
+    bun install -g opencode-ai && \
+    npm install -g --prefix "$HOME/.local" @openchamber/web && \
     opencode --version && \
-    openchamber --version 
-    
-# Find the actual Node version and add it to PATH
-RUN export NVM_DIR="$HOME/.nvm" && \
-    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && \
-    NODE_VERSION_FULL=$(node --version | cut -c2-) && \
-    echo "export PATH=\"${NVM_DIR}/versions/node/v${NODE_VERSION_FULL}/bin:\$PATH\"" >> $HOME/.bashrc
+    openchamber --version
+
+ENV BUN_INSTALL="$HOME/.bun"
+ENV PATH="$BUN_INSTALL/bin:$PATH"
 
 # # # Verify installed tools
 RUN echo "Installed Versions" \
-    export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" \
     && uv python list \
     && uv --version \
     # && dotnet --version \
     && java --version \
     && gh --version \
     && glab --version \
+    && bun --version \
     && node --version \
     && npm --version \
     && openchamber --version \
@@ -148,4 +148,4 @@ RUN mkdir $HOME/ai-workdir
 EXPOSE 8126
 #ENTRYPOINT ["export NVM_DIR=\"$HOME/.nvm\" && [ -s \"$NVM_DIR/nvm.sh\" ] && \. \"$NVM_DIR/nvm.sh\" && openchamber --port 8126"]
 #ENTRYPOINT ["bash", "-c", "source ~/.bashrc && openchamber --port 8126"]
-ENTRYPOINT ["/bin/bash", "-c", "cd $HOME/ai-workdir && source $HOME/.nvm/nvm.sh && exec openchamber --port 8126"]
+ENTRYPOINT ["/bin/bash", "-c", "cd $HOME/ai-workdir && exec openchamber --port 8126"]

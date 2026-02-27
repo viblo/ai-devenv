@@ -39,6 +39,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     # Java
     maven \
     openjdk-21-jdk \
+    nodejs \
+    npm \
     # for SDL (pygame)
     libsdl2-dev \
     libsdl2-image-dev \
@@ -129,12 +131,15 @@ RUN curl https://bun.sh/install | bash && \
     bun install -g @openai/codex && \
     opencode --version 
 
+ENV BUN_INSTALL="$HOME/.bun"
+ENV PATH="$BUN_INSTALL/bin:$PATH"
+
 
 RUN git clone https://github.com/tiann/hapi.git hapi-src
 RUN cd hapi-src && \
     bun install && \
     bun build:single-exe && \
-    mv cli/dist-exe/bun-linux-x64/hapi ..\.
+    mv cli/dist-exe/bun-linux-x64/hapi ../hapi
 
 # Verify installed tools
 RUN echo "Installed Versions" \
