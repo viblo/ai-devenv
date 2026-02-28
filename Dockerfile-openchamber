@@ -43,6 +43,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     # Node / JS
     nodejs \
     npm \
+    # For AppImages
+    libfuse2 \
     # for SDL (pygame)
     libsdl2-dev \
     libsdl2-image-dev \
@@ -101,6 +103,12 @@ ENV PATH="${HOME}/.local/bin:${PATH}"
 # Pyhton tools
 RUN uv tool install ruff@latest && \
     uv tool install ty@latest
+
+
+# Love2d
+RUN curl -L "https://github.com/love2d/love/releases/download/11.5/love-11.5-x86_64.AppImage" \
+        -o ${HOME}/.local/bin/love \
+    && chmod +x ${HOME}/.local/bin/love
 
 ENV SHELL=/bin/bash
 #ENV NVM_DIR=/home/${USERNAME}/.nvm
