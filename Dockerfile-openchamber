@@ -66,12 +66,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Install uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-# ----- .NET SDK 8 (install script) -----
-# RUN curl -fsSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh \
-#     && chmod +x /tmp/dotnet-install.sh \
-#     && /tmp/dotnet-install.sh --channel 8.0 --install-dir /usr/share/dotnet --no-path \
-#     && rm /tmp/dotnet-install.sh
-
 # Install gh cli
 RUN mkdir -p -m 755 /etc/apt/keyrings \
 	&& out=$(mktemp) && wget -nv -O$out https://cli.github.com/packages/githubcli-archive-keyring.gpg \
@@ -86,15 +80,21 @@ RUN mkdir -p -m 755 /etc/apt/keyrings \
 # Install GitLab CLI 
 COPY --from=gitlab/glab:latest /usr/bin/glab /usr/local/bin/glab
 
-# # Install Node.js directly from NodeSource
-# RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
-#     && apt-get install -y nodejs
+# Install GO
+RUN curl -OL https://golang.org/dl/go1.26.0.linux-amd64.tar.gz && \
+    tar -C /usr/local -xzf go1.26.0.linux-amd64.tar.gz && \
+    rm go1.26.0.linux-amd64.tar.gz
 
+ENV GOPATH="/home/${USERNAME}/go"
+ENV PATH="{$GOPATH}/bin:/usr/local/go/bin:${PATH}"
 
 # Switch to non-root user    
 USER ${USERNAME}
 ENV HOME=/home/${USERNAME}
 WORKDIR /home/${USERNAME}
+
+# Make gopath folders as non-root
+RUN mkdir -p $GOPATH/bin $GOPATH/src
 
 # Install Python
 RUN uv python install --default
@@ -104,15 +104,17 @@ ENV PATH="${HOME}/.local/bin:${PATH}"
 RUN uv tool install ruff@latest && \
     uv tool install ty@latest
 
-
 # Love2d
-RUN curl -L "https://github.com/love2d/love/releases/download/11.5/love-11.5-x86_64.AppImage" \
-        -o ${HOME}/.local/bin/love \
-    && chmod +x ${HOME}/.local/bin/love
+RUN mkdir -p /home/ai/.local/bin \
+    && curl -L "https://github.com/love2d/love/releases/download/11.5/love-11.5-x86_64.AppImage" -o /tmp/love.AppImage \
+    && chmod +x /tmp/love.AppImage \
+    && cd /home/ai/.local/bin \
+    && /tmp/love.AppImage --appimage-extract \
+    && mv squashfs-root love-11.5 \
+    && rm /tmp/love.AppImage \
+    && ln -s /home/ai/.local/bin/love-11.5/AppRun /home/ai/.local/bin/love
 
 ENV SHELL=/bin/bash
-#ENV NVM_DIR=/home/${USERNAME}/.nvm
-#ENV NODE_VERSION=24
 
 # Set git user & email
 RUN git config --global user.name "$GIT_USER" && \
@@ -145,7 +147,6 @@ RUN echo "Installed Versions" \
     && opencode --version
 
 # openchamber --port 8126 --ui-password 123
-# nohup openchamber --port 8126 --ui-password 123 >> openchamber.log 2>&1 &
 # codenomad --port 8127 --username vb --password 123
 # nohup codenomad --host 0.0.0.0 --port 8127 --username vb --password 123 >> codenomad.log 2>&1 &
 # CLI_API_TOKEN=a HAPI_API_URL=http://localhost:8128 HAPI_LISTEN_HOST=0.0.0.0 HAPI_LISTEN_PORT=8128 HAPI_PUBLIC_URL=http://localhost:8126 hapi hub 
