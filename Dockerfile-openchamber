@@ -120,17 +120,17 @@ ENV SHELL=/bin/bash
 RUN git config --global user.name "$GIT_USER" && \
     git config --global user.email "$GIT_NAME"
 
+# Install Bun, OpenCode and Openchamber.
+ENV BUN_INSTALL="$HOME/.bun"
+ENV PATH="$BUN_INSTALL/bin:$PATH"
+ENV npm_config_python="/usr/bin/python3"
+
 RUN curl https://bun.sh/install | bash && \
-    export BUN_INSTALL="$HOME/.bun" && \
-    export PATH="$BUN_INSTALL/bin:$PATH" && \
-    export npm_config_python="/usr/bin/python3" && \
     bun install -g opencode-ai && \
     npm install -g --prefix "$HOME/.local" @openchamber/web && \
     opencode --version && \
     openchamber --version
 
-ENV BUN_INSTALL="$HOME/.bun"
-ENV PATH="$BUN_INSTALL/bin:$PATH"
 
 # # # Verify installed tools
 RUN echo "Installed Versions" \
