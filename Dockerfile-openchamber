@@ -37,30 +37,34 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     file \
     strace \
+    # C
+    cmake clang-format \
+    # For documentation generation
+    doxygen \
     # Java
-    maven \
-    openjdk-21-jdk \
+    maven openjdk-21-jdk \
     # Node / JS
-    nodejs \
-    npm \
+    nodejs npm \
     # For AppImages
     libfuse2 \
     # for SDL (pygame)
-    libsdl2-dev \
-    libsdl2-image-dev \
-    libsdl2-mixer-dev \ 
-    libsdl2-ttf-dev \
+    libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev \
     # OpenGL software
-    libglvnd0 \
-    libgl1 \
-    libegl1 \ 
-    libgles2 \ 
-    libglvnd-dev \
-    mesa-utils \
-    libosmesa6 \
-    libgl1-mesa-dri \
+    libglvnd0 libgl1 libegl1 libgles2 libglvnd-dev mesa-utils libosmesa6 libgl1-mesa-dri \
     # Headless screen
     xvfb \
+    # Image editing (png, svg, webp etc)
+    imagemagick librsvg2-bin webp inkscape \
+    # Fonts
+    fontconfig fonts-dejavu-core \ 
+    && rm -rf /var/lib/apt/lists/*
+
+# Install oxipng for optimizing pngs. 
+RUN curl -fsSLo /tmp/oxipng.deb https://github.com/oxipng/oxipng/releases/download/v10.1.0/oxipng_10.1.0-1_amd64.deb \
+    && echo "62cdfec9711f18bed51de535b4f060fcca46fd1e08cfe8e5ed07a6918b076c5c  /tmp/oxipng.deb" | sha256sum -c - \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends /tmp/oxipng.deb \
+    && rm -f /tmp/oxipng.deb \
     && rm -rf /var/lib/apt/lists/*
 
 # Install uv
@@ -86,7 +90,7 @@ RUN curl -OL https://golang.org/dl/go1.26.0.linux-amd64.tar.gz && \
     rm go1.26.0.linux-amd64.tar.gz
 
 ENV GOPATH="/home/${USERNAME}/go"
-ENV PATH="{$GOPATH}/bin:/usr/local/go/bin:${PATH}"
+ENV PATH="${GOPATH}/bin:/usr/local/go/bin:${PATH}"
 
 # Switch to non-root user    
 USER ${USERNAME}
@@ -121,13 +125,15 @@ RUN git config --global user.name "$GIT_USER" && \
     git config --global user.email "$GIT_NAME"
 
 # Install Bun, OpenCode and Openchamber.
-ENV BUN_INSTALL="$HOME/.bun"
-ENV PATH="$BUN_INSTALL/bin:$PATH"
+ENV BUN_INSTALL="${HOME}/.bun"
+# .local/bin will be put first anyway from .profile, so can just as well do it here.
+ENV PATH="/home/ai/.local/bin:${BUN_INSTALL}/bin:${PATH}"
 ENV npm_config_python="/usr/bin/python3"
 
 RUN curl https://bun.sh/install | bash && \
     bun install -g opencode-ai && \
-    npm install -g --prefix "$HOME/.local" @openchamber/web && \
+    bun install -g @openchamber/web && \
+    #npm install -g --prefix "$HOME/.local" @openchamber/web && \
     opencode --version && \
     openchamber --version
 
@@ -157,4 +163,5 @@ RUN mkdir $HOME/ai-workdir
 EXPOSE 8126
 #ENTRYPOINT ["export NVM_DIR=\"$HOME/.nvm\" && [ -s \"$NVM_DIR/nvm.sh\" ] && \. \"$NVM_DIR/nvm.sh\" && openchamber --port 8126"]
 #ENTRYPOINT ["bash", "-c", "source ~/.bashrc && openchamber --port 8126"]
-ENTRYPOINT ["/bin/bash", "-c", "cd $HOME/ai-workdir && exec openchamber --port 8126"]
+ENTRYPOINT ["/bin/bash", "-c", "cd $HOME/ai-workdir && openchamber --port 8126 && exec openchamber logs --port 8126"]
+#ENTRYPOINT ["sleep", "infinity"]
