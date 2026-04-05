@@ -152,7 +152,9 @@ FROM base AS openchamber-agent
 
 RUN bun install -g opencode-ai && bun install -g @openchamber/web
 
-ENTRYPOINT ["/bin/bash", "-c", "cd $HOME/ai-workdir && openchamber --port 8126 && exec openchamber logs --port 8126"]
+ENV OPENCHAMBER_UI_PASSWORD=123
+
+ENTRYPOINT ["/bin/bash", "-c", "cd $HOME/ai-workdir && openchamber --port 8126 --ui-password abc && exec openchamber logs --port 8126"]
 
 #
 # PicoClaw
@@ -165,11 +167,11 @@ RUN curl -L "https://github.com/sipeed/picoclaw/releases/latest/download/picocla
     && mv /tmp/picoclaw /home/ai/.local/bin/picoclaw \
     && chmod +x /home/ai/.local/bin/picoclaw \
     && mv /tmp/picoclaw-launcher /home/ai/.local/bin/picoclaw-launcher \
-    && chmod +x /home/ai/.local/bin/-launcher \
+    && chmod +x /home/ai/.local/bin/picoclaw-launcher \
     && rm /tmp/picoclaw.tar.gz
-
+EXPOSE 8131
 #ENTRYPOINT ["/bin/bash"]
-ENTRYPOINT ["/bin/bash", "-c", "picoclaw-launcher -public -port 8126"]
+ENTRYPOINT ["/bin/bash", "-c", "picoclaw-launcher -public -port 8131"]
 
 #
 # Nanobot
