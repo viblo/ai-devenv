@@ -186,4 +186,4 @@ RUN uv tool install nanobot-webui
 EXPOSE 8136
 
 ENTRYPOINT ["/bin/bash"]
-#ENTRYPOINT ["/bin/bash", "-c", "nanobot webui start --port 8126"]
+#ENTRYPOINT ["/bin/bash", "-c", "nanobot webui start --port 8136"]
