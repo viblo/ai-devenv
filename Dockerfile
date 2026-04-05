@@ -169,6 +169,9 @@ RUN curl -L "https://github.com/sipeed/picoclaw/releases/latest/download/picocla
     && mv /tmp/picoclaw-launcher /home/ai/.local/bin/picoclaw-launcher \
     && chmod +x /home/ai/.local/bin/picoclaw-launcher \
     && rm /tmp/picoclaw.tar.gz
+
+RUN mkdir $HOME/.picoclaw
+
 EXPOSE 8131
 #ENTRYPOINT ["/bin/bash"]
 ENTRYPOINT ["/bin/bash", "-c", "picoclaw-launcher -public -port 8131"]
