@@ -33,6 +33,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     unzip \
     wget \
     file \
+    tree \
     strace \
     # C
     cmake clang-format \
@@ -143,7 +144,6 @@ RUN echo "Installed Versions" \
 
 RUN mkdir $HOME/ai-workdir
 
-EXPOSE 8126
 
 #
 # OpenChamber & OpenCode
@@ -152,9 +152,9 @@ FROM base AS openchamber-agent
 
 RUN bun install -g opencode-ai && bun install -g @openchamber/web
 
-ENV OPENCHAMBER_UI_PASSWORD=123
+EXPOSE 8126
 
-ENTRYPOINT ["/bin/bash", "-c", "cd $HOME/ai-workdir && openchamber --port 8126 --ui-password abc && exec openchamber logs --port 8126"]
+ENTRYPOINT ["/bin/bash", "-c", "cd $HOME/ai-workdir && openchamber --port 8126 --host 0.0.0.0 && exec openchamber logs --port 8126"]
 
 #
 # PicoClaw
@@ -185,5 +185,27 @@ RUN uv tool install nanobot-webui
 
 EXPOSE 8136
 
-ENTRYPOINT ["/bin/bash"]
-#ENTRYPOINT ["/bin/bash", "-c", "nanobot webui start --port 8136"]
+#ENTRYPOINT ["/bin/bash"]
+ENTRYPOINT ["/bin/bash", "-c", "nanobot webui start --port 8136"]
+
+#
+# CodeNomad & OpenCode
+#
+FROM base AS codenomad-agent
+
+RUN bun install -g opencode-ai && bun install -g @neuralnomads/codenomad
+
+EXPOSE 8141
+
+ENTRYPOINT ["/bin/bash", "-c", "cd $HOME/ai-workdir && codenomad --http true --http-port 8141 --https true --https-port 8142 --host 0.0.0.0 --dangerously-skip-auth "]
+
+#
+# Hapi & OpenCode
+#
+FROM base AS hapi-agent
+
+RUN bun install -g opencode-ai && bun install -g @twsxtd/hapi
+
+EXPOSE 8146
+
+ENTRYPOINT ["/bin/bash", "-c", "cd $HOME/ai-workdir && hapi hub"]
