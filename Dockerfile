@@ -54,7 +54,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     # Image editing (png, svg, webp etc)
     imagemagick librsvg2-bin webp inkscape \
     # Fonts
-    fontconfig fonts-dejavu-core \ 
+    fontconfig fonts-dejavu-core \
     && rm -rf /var/lib/apt/lists/*
 
 # Install oxipng for optimizing pngs. 
@@ -120,7 +120,7 @@ ENV SHELL=/bin/bash
 
 # Set git user & email
 RUN git config --global user.name "$GIT_USER" && \
-    git config --global user.email "$GIT_NAME"
+    git config --global user.email "$GIT_EMAIL"
 
 # Install Bun
 ENV BUN_INSTALL="${HOME}/.bun"
@@ -191,21 +191,50 @@ ENTRYPOINT ["/bin/bash", "-c", "nanobot webui start --port 8136"]
 #
 # CodeNomad & OpenCode
 #
+# Folders thats needed:
+#   /home/ai/ai-workdir - for code and projects, this is the main workspace    
+#   /home/ai/.local/share/opencode - for OpenCode auth persistence, this is needed to keep Copilot login working across container restarts.
+#   /home/ai/.config/codenomad - for CodeNomad's own data, such as installed agents and their data. Not strictly needed to persist this, but good to have it outside of the container for easier access and backup.    
+#
+# OpenCode auth needs to be completed before CodeNomad is used:
+#  - Exec into the container with docker exec -it codenomad-agent bash
+#  - Then run `opencode auth login` once and persist ~/.local/share/opencode to keep Copilot login.
+
 FROM base AS codenomad-agent
 
 RUN bun install -g opencode-ai && bun install -g @neuralnomads/codenomad
 
 EXPOSE 8141
 
-ENTRYPOINT ["/bin/bash", "-c", "cd $HOME/ai-workdir && codenomad --http true --http-port 8141 --https true --https-port 8142 --host 0.0.0.0 --dangerously-skip-auth "]
+ENTRYPOINT ["/bin/bash", "-c", "cd $HOME/ai-workdir && codenomad --http true --http-port 8141 --https false --host 0.0.0.0 --dangerously-skip-auth "]
 
 #
 # Hapi & OpenCode
 #
+# Folders thats needed:
+#   /home/ai/ai-workdir - for code and projects, this is the main workspace    
+#   /home/ai/.local/share/opencode - for OpenCode auth persistence, this is needed to keep Copilot login working across container restarts.
+#   /home/ai/.hapi - for Hapi's own data, such as installed agents and their data. Not strictly needed to persist this, but good to have it outside of the container for easier access and backup.    
+#
+# OpenCode auth needs to be completed before hapi is used:
+#  - Exec into the container with docker exec -it hapi-agent bash
+#  - Then run `opencode auth login` once and persist ~/.local/share/opencode to keep Copilot login.
+
 FROM base AS hapi-agent
 
 RUN bun install -g opencode-ai && bun install -g @twsxtd/hapi
 
 EXPOSE 8146
 
-ENTRYPOINT ["/bin/bash", "-c", "cd $HOME/ai-workdir && hapi hub"]
+ENTRYPOINT ["/bin/bash", "-lc", "export HAPI_LISTEN_HOST=0.0.0.0 HAPI_LISTEN_PORT=8146 HAPI_API_URL=http://127.0.0.1:8146; cd \"$HOME/ai-workdir\"; hapi hub & hub_pid=$!; until curl -fsS http://127.0.0.1:8146/health > /dev/null; do if ! kill -0 \"$hub_pid\" 2>/dev/null; then wait \"$hub_pid\"; exit $?; fi; sleep 1; done; hapi runner start; wait \"$hub_pid\""]
+
+#
+# Rho & Pi
+#
+FROM base AS rho-agent
+
+RUN bun install -g @mariozechner/pi-coding-agent && bun install -g @rhobot-dev/rho
+
+EXPOSE 8146
+
+ENTRYPOINT ["/bin/bash", "-c", "cd $HOME/ai-workdir && rho"]
