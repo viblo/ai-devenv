@@ -239,3 +239,13 @@ RUN bun install -g @mariozechner/pi-coding-agent && bun install -g @rhobot-dev/r
 EXPOSE 8146
 
 ENTRYPOINT ["/bin/bash", "-c", "cd $HOME/ai-workdir && rho"]
+
+#
+# Paseo & Pi & OpenCode
+#
+FROM base AS paseo-agent
+RUN bun install -g @mariozechner/pi-coding-agent && bun install -g opencode-ai && bun install -g @getpaseo/cli
+
+EXPOSE 8151
+
+ENTRYPOINT ["/bin/bash", "-c", "cd $HOME/ai-workdir && paseo"]
