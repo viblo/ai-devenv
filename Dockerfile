@@ -248,4 +248,5 @@ RUN bun install -g @mariozechner/pi-coding-agent && bun install -g opencode-ai &
 
 EXPOSE 8151
 
-ENTRYPOINT ["/bin/bash", "-c", "cd $HOME/ai-workdir && paseo"]
+ENTRYPOINT ["/bin/bash", "-c", "cd $HOME/ai-workdir && paseo start --listen 0.0.0.0:8151 --foreground"]
+#ENTRYPOINT ["/bin/bash", "-c", "cd $HOME/ai-workdir && paseo"]
