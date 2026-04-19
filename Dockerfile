@@ -232,13 +232,18 @@ ENTRYPOINT ["/bin/bash", "-lc", "export HAPI_LISTEN_HOST=0.0.0.0 HAPI_LISTEN_POR
 #
 # Rho & Pi
 #
+# Folders thats needed:
+#   /home/ai/ai-workdir - for code and projects, this is the main workspace    
+#   /home/ai/.rho - For Rhos data
+#
+
 FROM base AS rho-agent
 
 RUN bun install -g @mariozechner/pi-coding-agent && bun install -g @rhobot-dev/rho
 
 EXPOSE 8146
 
-ENTRYPOINT ["/bin/bash", "-c", "cd $HOME/ai-workdir && rho"]
+ENTRYPOINT ["/bin/bash", "-c", "cd $HOME/ai-workdir && rho web --port 8146"]
 
 #
 # Paseo & Pi & OpenCode
@@ -249,4 +254,15 @@ RUN bun install -g @mariozechner/pi-coding-agent && bun install -g opencode-ai &
 EXPOSE 8151
 
 ENTRYPOINT ["/bin/bash", "-c", "cd $HOME/ai-workdir && paseo start --listen 0.0.0.0:8151 --foreground"]
+#ENTRYPOINT ["/bin/bash", "-c", "cd $HOME/ai-workdir && paseo"]
+
+#
+# Yepanywhere & OpenCode
+#
+FROM base AS yepanywhere-agent
+RUN bun install -g opencode-ai && bun install -g yepanywhere
+
+EXPOSE 8156
+
+ENTRYPOINT ["/bin/bash", "-c", "cd $HOME/ai-workdir && yepanywhere"]
 #ENTRYPOINT ["/bin/bash", "-c", "cd $HOME/ai-workdir && paseo"]
