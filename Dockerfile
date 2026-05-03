@@ -36,6 +36,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     tree \
     tmux \
     strace \
+    openssh-client \
     # C
     cmake clang-format \
     # For documentation generation
@@ -90,6 +91,11 @@ RUN curl -OL https://golang.org/dl/go1.26.0.linux-amd64.tar.gz && \
 
 ENV GOPATH="/home/${USERNAME}/go"
 ENV PATH="${GOPATH}/bin:/usr/local/go/bin:${PATH}"
+
+
+# Install Browser (Lightpanda)
+RUN curl -fsSL https://pkg.lightpanda.io/install.sh | bash
+
 
 # Switch to non-root user    
 USER ${USERNAME}
@@ -227,7 +233,7 @@ RUN bun install -g opencode-ai && bun install -g @twsxtd/hapi
 
 EXPOSE 8146
 
-ENTRYPOINT ["/bin/bash", "-lc", "export HAPI_LISTEN_HOST=0.0.0.0 HAPI_LISTEN_PORT=8146 HAPI_API_URL=http://127.0.0.1:8146; cd \"$HOME/ai-workdir\"; hapi hub & hub_pid=$!; until curl -fsS http://127.0.0.1:8146/health > /dev/null; do if ! kill -0 \"$hub_pid\" 2>/dev/null; then wait \"$hub_pid\"; exit $?; fi; sleep 1; done; hapi runner start; wait \"$hub_pid\""]
+ENTRYPOINT ["/bin/bash", "-lc", "export HAPI_LISTEN_HOST=0.0.0.0 HAPI_LISTEN_PORT=8146 HAPI_API_URL=http://127.0.0.1:8146; cd \"$HOME/ai-workdir\"; hapi hub & hub_pid=$!; until curl -fsS http://127.0.0.1:8146/health > /dev/null; do if ! kill -0 \"$hub_pid\" 2>/dev/null; then wait \"$hub_pid\"; exit $?; fi; sleep 1; done; hapi runner start --workspace-root /home/ai/ai-workdir ; wait \"$hub_pid\""]
 
 #
 # Rho & Pi
