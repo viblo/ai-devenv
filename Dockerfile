@@ -94,7 +94,10 @@ ENV PATH="${GOPATH}/bin:/usr/local/go/bin:${PATH}"
 
 
 # Install Browser (Lightpanda)
-RUN curl -fsSL https://pkg.lightpanda.io/install.sh | bash
+# Install Browser (Lightpanda)
+RUN curl -L -o /usr/local/bin/lightpanda \
+    https://github.com/lightpanda-io/browser/releases/download/nightly/lightpanda-x86_64-linux \
+    && chmod +x /usr/local/bin/lightpanda
 
 
 # Switch to non-root user    
