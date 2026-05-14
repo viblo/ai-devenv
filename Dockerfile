@@ -275,3 +275,25 @@ EXPOSE 8156
 
 ENTRYPOINT ["/bin/bash", "-c", "cd $HOME/ai-workdir && yepanywhere"]
 #ENTRYPOINT ["/bin/bash", "-c", "cd $HOME/ai-workdir && paseo"]
+
+#
+# Piclaw
+#
+FROM base AS piclaw-agent
+RUN bun add -g github:rcarmo/piclaw
+
+EXPOSE 8161
+
+ENTRYPOINT ["/bin/bash", "-c", "cd $HOME/ai-workdir && piclaw"]
+
+
+#
+# Bernstein
+#
+FROM base AS bernstein-agent
+RUN bun install -g opencode-ai && uv tool install bernstein 
+
+EXPOSE 8165
+
+ENTRYPOINT ["/bin/bash", "-c", "cd $HOME/ai-workdir && yepanywhere"]
+#ENTRYPOINT ["/bin/bash", "-c", "cd $HOME/ai-workdir && paseo"]
