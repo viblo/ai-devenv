@@ -280,12 +280,12 @@ ENTRYPOINT ["/bin/bash", "-c", "cd $HOME/ai-workdir && yepanywhere"]
 # Piclaw
 #
 FROM base AS piclaw-agent
-RUN bun add -g github:rcarmo/piclaw
+
+RUN bun install -g github:rcarmo/piclaw
 
 EXPOSE 8161
 
-ENTRYPOINT ["/bin/bash", "-c", "cd $HOME/ai-workdir && piclaw"]
-
+ENTRYPOINT ["/bin/bash", "-lc", "export PICLAW_WORKSPACE=\"$HOME/ai-workdir\" PICLAW_WEB_HOST=0.0.0.0 PICLAW_WEB_PORT=8161; cd \"$HOME/ai-workdir\"; piclaw --host 0.0.0.0 --port 8161"]
 
 #
 # Bernstein
